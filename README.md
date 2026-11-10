@@ -1,6 +1,6 @@
 # 🖥️ Gemelo Digital 3D — Sala de Servidores & Simulación CFD Multivariable
 
-**Proyecto de Aula / Symposium de Grado**  
+**Proyecto de Aula
 **Autores**: Darwin Samuel Machuca González, Ferney Bladimir Bermúdez Toloza, Saray Valentina Silva Galindo  
 **Programa**: Ingeniería en Ciencias de la Computación e Inteligencia Artificial  
 **Institución**: Universidad de Santander (UDES)  

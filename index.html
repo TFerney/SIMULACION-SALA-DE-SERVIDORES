@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemelo Digital 3D — Simulación CFD &amp; Termodinámica | UDES</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- HUD Sci-Fi Glassmorphism Lateral Izquierdo -->
+  <aside id="hud">
+    <div class="hud-header">
+      <div class="hud-badge">DIGITAL TWIN · CFD ENGINE</div>
+      <h1 class="hud-title">CENTRO DE DATOS 3D</h1>
+      <div class="hud-authors">
+        Darwin S. Machuca · Ferney B. Bermúdez · Saray V. Silva<br/>
+        <span>Ing. en Ciencias de la Computación e IA · UDES</span>
+      </div>
+    </div>
+
+    <!-- 1. Dominio Espacial e Integral Triple -->
+    <div class="hud-card">
+      <div class="hud-card-header">
+        <span class="hud-tag">1. DOMINIO ESPACIAL</span>
+        <span class="hud-pill highlight-cyan">450 m³</span>
+      </div>
+      <div class="hud-equation">Ω = [0, 10] × [0, 15] × [0, 3] m</div>
+      <div class="hud-subequation">V = ∭<sub>Ω</sub> dV = 10 × 15 × 3 = 450.00 m³</div>
+      <div class="hud-row">
+        <span>Superficie suelo: <strong>150 m²</strong></span>
+        <span>Volumen comprobado: <strong class="color-cyan">450 m³</strong></span>
+      </div>
+    </div>
+
+    <!-- 2. Distribución Térmica y Teorema del Valor Medio -->
+    <div class="hud-card">
+      <div class="hud-card-header">
+        <span class="hud-tag">2. DISTRIBUCIÓN TÉRMICA</span>
+        <span class="hud-pill highlight-green">T̄ = 23°C</span>
+      </div>
+      <div class="hud-equation">T(x,y,z) = 20 + z² (°C)</div>
+      <div class="hud-subequation">T̄ = (1/450) ∭<sub>Ω</sub> (20 + z²) dV = 23.00°C</div>
+      <div class="hud-row">
+        <span>Suelo (z=0): <strong class="color-cold">20.0°C</strong></span>
+        <span>Techo (z=3): <strong class="color-hot">29.0°C</strong></span>
+      </div>
+    </div>
+
+    <!-- 3. Vector Gradiente y Optimización -->
+    <div class="hud-card">
+      <div class="hud-card-header">
+        <span class="hud-tag">3. VECTOR GRADIENTE</span>
+        <span class="hud-pill">∇T(x,y,z)</span>
+      </div>
+      <div class="hud-equation">∇T = (0, 0, 2z)</div>
+      <div class="hud-subequation">Ascenso térmico vertical hacia extractores</div>
+      <div class="hud-row">
+        <span>Extractores críticos:</span>
+        <strong id="hud-extractors-count" class="color-hot">5 Unidades (z=3m)</strong>
+      </div>
+      <div class="hud-row">
+        <span>Rejillas inyección:</span>
+        <strong id="hud-vents-count" class="color-cold">6 Unidades (z=0m)</strong>
+      </div>
+    </div>
+
+    <!-- 4. Campo Vectorial y Divergencia -->
+    <div class="hud-card">
+      <div class="hud-card-header">
+        <span class="hud-tag">4. CAMPO VECTORIAL &amp; CFD</span>
+        <span class="hud-pill highlight-alert">div F = 1.7</span>
+      </div>
+      <div class="hud-equation">F(x,y,z) = (0.5x, 0.2y, 1.5 + z)</div>
+      <div class="hud-subequation">div F = ∇·F = 0.5 + 0.2 + 1.0 = 1.70 &gt; 0</div>
+      <div class="hud-hint">Expansión volumétrica neta del aire caliente</div>
+    </div>
+
+    <!-- Telemetría en Vivo -->
+    <div class="hud-card hud-telemetry">
+      <div class="tel-item">
+        <span class="tel-lbl">ESTADO HVAC</span>
+        <span id="tel-hvac-state" class="tel-txt color-cold">ENFRIANDO</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-lbl">TEMP. MEDIA SALA</span>
+        <span id="tel-temp-live" class="tel-txt">23.0 °C</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-lbl">RPM EXTRACTORES</span>
+        <span id="tel-fans-rpm" class="tel-txt">1,450 RPM</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-lbl">STREAMLINES ACTIVAS</span>
+        <span id="tel-streamlines" class="tel-txt">1,200 Trails</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Barra Superior de Acciones Principales -->
+  <header id="top-bar">
+    <button id="btn-recalc-gradient" class="action-btn primary-btn">
+      <span class="btn-icon">⚡</span>
+      <span class="btn-text">
+        <strong>Recalcular Gradiente ∇T</strong>
+        <small>Reubicar Ventilación Dinámica</small>
+      </span>
+    </button>
+
+    <button id="btn-toggle-math-modal" class="action-btn secondary-btn">
+      <span class="btn-icon">📐</span>
+      <span class="btn-text">
+        <strong>Demostración Analítica</strong>
+        <small>Integrales y Divergencia</small>
+      </span>
+    </button>
+
+    <div class="click-probe-hint">
+      🎯 <em>Haz clic en cualquier punto 3D para inspeccionar con Raycasting</em>
+    </div>
+  </header>
+
+  <!-- Panel de Control Glassmorphism (Derecha) -->
+  <section id="sim-controls">
+    <div class="sim-header">
+      <span class="sim-title">⚙️ CAPAS 3D &amp; PARÁMETROS</span>
+      <button id="btn-collapse-controls" class="btn-mini" title="Minimizar">−</button>
+    </div>
+
+    <div class="sim-body">
+      <!-- Selector de Capas -->
+      <div class="control-group">
+        <div class="group-title">CAPAS VISUALES INDEPENDIENTES</div>
+        <div class="toggle-grid">
+          <label class="toggle-pill" title="Gas continuo volumétrico difuminado sin bloques sólidos">
+            <input type="checkbox" id="toggle-volumetric-gas" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">🔥 Gas Térmico Volumétrico (Shader)</span>
+          </label>
+
+          <label class="toggle-pill" title="Estelas fluidas continuas (Streamline Ribbon Trails)">
+            <input type="checkbox" id="toggle-particles" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">💨 Estelas CFD (Streamlines)</span>
+          </label>
+
+          <label class="toggle-pill" title="Racks de servidores realistas con LEDs parpadeantes">
+            <input type="checkbox" id="toggle-racks" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">🖥️ Racks de Servidores PBR</span>
+          </label>
+
+          <label class="toggle-pill" title="Paredes exteriores de vidrio translúcido cyber-physical">
+            <input type="checkbox" id="toggle-glass-walls" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">💎 Paredes de Vidrio Translúcido</span>
+          </label>
+
+          <label class="toggle-pill" title="Extractores de techo y rejillas de suelo dinámicos">
+            <input type="checkbox" id="toggle-ventilation" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">🌀 Sistema de Ventilación Dinámico</span>
+          </label>
+
+          <label class="toggle-pill" title="Límites del dominio de 10x15x3 m y ejes cartesianos">
+            <input type="checkbox" id="toggle-bounds" checked />
+            <span class="pill-indicator"></span>
+            <span class="pill-label">📐 Dominio [0,10]×[0,15]×[0,3]</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sliders de Parámetros -->
+      <div class="control-group">
+        <div class="group-title">PARÁMETROS FÍSICOS CFD</div>
+
+        <div class="sim-row">
+          <div class="row-label">
+            <span>🔥 Densidad del Gas Térmico</span>
+            <span id="badge-gas-density" class="badge">0.75×</span>
+          </div>
+          <input type="range" id="slider-gas-density" min="0.1" max="1.5" step="0.05" value="0.75" />
+          <div class="track-hint"><span>Sutil / Difuso</span><span>Denso / Intenso</span></div>
+        </div>
+
+        <div class="sim-row">
+          <div class="row-label">
+            <span>💨 Velocidad de Flujo (F)</span>
+            <span id="badge-flow" class="badge">1.00×</span>
+          </div>
+          <input type="range" id="slider-flow" min="0.2" max="3.0" step="0.05" value="1.0" />
+          <div class="track-hint"><span>Laminar (0.2×)</span><span>Acelerado (3.0×)</span></div>
+        </div>
+
+        <div class="sim-row">
+          <div class="row-label">
+            <span>🌡️ Carga Térmica (Servidores)</span>
+            <span id="badge-thermal" class="badge">1.00×</span>
+          </div>
+          <input type="range" id="slider-thermal" min="0.2" max="2.5" step="0.05" value="1.0" />
+          <div class="track-hint"><span>Baja disipación</span><span>Estrés IA</span></div>
+        </div>
+      </div>
+
+      <!-- Presets de Cámara -->
+      <div class="control-group">
+        <div class="group-title">PERSPECTIVAS DE CÁMARA</div>
+        <div class="camera-btn-row">
+          <button class="cam-btn active" data-cam="general">🌐 Isométrica</button>
+          <button class="cam-btn" data-cam="walkthrough">🚶 Pasillo Frío</button>
+          <button class="cam-btn" data-cam="top">⬆️ Cenital</button>
+          <button class="cam-btn" data-cam="hot-aisle">🔥 Pasillo Caliente</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leyenda de Colores Cromática -->
+  <div id="color-legend">
+    <div class="legend-block">
+      <div class="legend-title">Temperatura T(z) = 20 + z² (°C)</div>
+      <div class="legend-bar temp-gradient"></div>
+      <div class="legend-ticks">
+        <span>20°C (Suelo)</span>
+        <span>23°C (T̄)</span>
+        <span>26°C</span>
+        <span>29°C (Techo)</span>
+      </div>
+    </div>
+
+    <div class="legend-block">
+      <div class="legend-title">Magnitud del Flujo |F| (m/s)</div>
+      <div class="legend-bar flow-gradient"></div>
+      <div class="legend-ticks">
+        <span>1.5 m/s</span>
+        <span>3.5 m/s</span>
+        <span>5.5 m/s</span>
+        <span>7.5+ m/s</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip Holográfico de Raycasting 3D -->
+  <div id="raycast-tooltip" class="tooltip-hidden">
+    <div class="tooltip-header">
+      <span class="tooltip-icon">📍</span>
+      <span class="tooltip-title">SONDA TERMOHIDRÁULICA</span>
+      <button id="btn-close-tooltip" class="tooltip-close">&times;</button>
+    </div>
+    <div class="tooltip-body">
+      <div class="probe-row">
+        <span class="probe-label">Coordenadas (x,y,z):</span>
+        <strong id="probe-coords" class="probe-val">X: 5.0m, Y: 7.5m, Z: 1.5m</strong>
+      </div>
+      <div class="probe-row">
+        <span class="probe-label">Temperatura local T:</span>
+        <strong id="probe-temp" class="probe-val color-temp">22.25 °C</strong>
+      </div>
+      <div class="probe-row">
+        <span class="probe-label">Vector velocidad F:</span>
+        <strong id="probe-vector" class="probe-val">(2.50, 1.50, 3.00) m/s</strong>
+      </div>
+      <div class="probe-row">
+        <span class="probe-label">Magnitud velocidad |F|:</span>
+        <strong id="probe-mag" class="probe-val color-cyan">4.18 m/s</strong>
+      </div>
+      <div class="probe-row">
+        <span class="probe-label">Divergencia (expansión):</span>
+        <strong id="probe-div" class="probe-val color-alert">div F = 1.70 &gt; 0</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notificación -->
+  <div id="toast" class="toast-hidden">
+    <div id="toast-title">OPTIMIZACIÓN COMPLETADA</div>
+    <div id="toast-body">Ventiladores y rejillas reubicados según ∇T.</div>
+  </div>
+
+  <!-- Modal Demostración Matemática Formal -->
+  <div id="math-modal" class="modal-backdrop modal-hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>📐 FUNDAMENTACIÓN FORMAL DE CÁLCULO MULTIVARIABLE</h2>
+        <button id="btn-close-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <div class="proof-section">
+          <h3>1. Validación de Volumen mediante Integral Triple</h3>
+          <p>
+            El recinto del centro de datos corresponde al dominio espacial tridimensional acotado:
+            <br/>
+            <code>Ω = { (x, y, z) ∈ ℝ³ : 0 ≤ x ≤ 10, 0 ≤ y ≤ 15, 0 ≤ z ≤ 3 }</code>
+          </p>
+          <div class="math-box">
+            V = ∭<sub>Ω</sub> dV = ∫₀¹⁰ dx ∫₀¹⁵ dy ∫₀³ dz
+            <br/>
+            V = [x]₀¹⁰ × [y]₀¹⁵ × [z]₀³ = (10 - 0) × (15 - 0) × (3 - 0) = 10 × 15 × 3 = <strong>450.00 m³</strong>
+          </div>
+          <p>La superficie de suelo es de <code>10 m × 15 m = 150 m²</code> con una altura máxima libre de <code>3.0 m</code>.</p>
+        </div>
+
+        <div class="proof-section">
+          <h3>2. Teorema del Valor Medio para Integrales Múltiples</h3>
+          <p>
+            Dada la distribución térmica cuadrática continua en altura <code>T(x,y,z) = 20 + z²</code>:
+          </p>
+          <div class="math-box">
+            T̄ = (1 / V) ∭<sub>Ω</sub> T(x, y, z) dV
+            <br/>
+            T̄ = (1 / 450) ∫₀¹⁰ dx ∫₀¹⁵ dy ∫₀³ (20 + z²) dz
+            <br/>
+            ∫₀³ (20 + z²) dz = [20z + z³/3]₀³ = 20(3) + 3³/3 = 60 + 9 = 69
+            <br/>
+            ∭<sub>Ω</sub> T dV = (10) × (15) × (69) = 150 × 69 = 10,350
+            <br/>
+            T̄ = 10,350 / 450 = 69 / 3 = <strong>23.00 °C</strong>
+          </div>
+          <p>
+            <em>Interpretación:</em> El recinto mantiene un régimen volumétrico medio ideal de 23°C dentro de las pautas térmicas ASHRAE TC 9.9 para centros de cómputo.
+          </p>
+        </div>
+
+        <div class="proof-section">
+          <h3>3. Vector Gradiente y Regla de Optimización</h3>
+          <p>
+            El vector gradiente <code>∇T</code> señala la dirección de máxima tasa de crecimiento térmico:
+          </p>
+          <div class="math-box">
+            ∇T(x, y, z) = ( ∂T/∂x, ∂T/∂y, ∂T/∂z ) = ( 0, 0, 2z )
+          </div>
+          <ul>
+            <li><strong>Puntos de menor temperatura:</strong> Ocurren en <code>z = 0</code> (el piso técnico), donde <code>T = 20°C</code> y <code>||∇T|| = 0</code>. Allí se instancian las rejillas perforadas de inyección de aire frío.</li>
+            <li><strong>Puntos de mayor temperatura (Zonas Críticas):</strong> Ocurren en <code>z = 3</code> (el techo), donde <code>T = 29°C</code> y <code>∇T = (0, 0, 6)</code> con máxima dirección ascendente. Allí se instancian automáticamente los ventiladores de extracción.</li>
+          </ul>
+        </div>
+
+        <div class="proof-section">
+          <h3>4. Operador Divergencia y Expansión Térmica</h3>
+          <p>
+            El campo de flujo convectivo está modelado por <code>F(x, y, z) = (0.5x, 0.2y, 1.5 + z)</code>.
+          </p>
+          <div class="math-box">
+            div F = ∇ · F = ∂P/∂x + ∂Q/∂y + ∂R/∂z
+            <br/>
+            div F = ∂(0.5x)/∂x + ∂(0.2y)/∂y + ∂(1.5 + z)/∂z
+            <br/>
+            div F = 0.5 + 0.2 + 1.0 = <strong>1.70 &gt; 0</strong>
+          </div>
+          <p>
+            Dado que <code>div F = 1.70 &gt; 0</code> constante y positivo en todo el dominio Ω, el campo actúa como una fuente continua volumétrica, verificando físicamente la <strong>expansión del aire caliente</strong> hacia los extractores del techo, corroborado por el Teorema de la Divergencia de Gauss.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-ok" class="action-btn primary-btn">Entendido / Continuar Simulación</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls-hint">
+    🖱️ Arrastrar = Orbitar &nbsp;|&nbsp; Scroll = Zoom &nbsp;|&nbsp; Click = Sondear Datos en Raycasting
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
